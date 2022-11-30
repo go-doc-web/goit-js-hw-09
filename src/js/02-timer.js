@@ -3,6 +3,7 @@ import flatpickr from 'flatpickr';
 
 const refs = {
   startBtn: document.querySelector('button[data-start]'),
+  inputDate: document.querySelector('input#datetime-picker'),
 };
 
 const options = {
@@ -16,7 +17,7 @@ const options = {
       refs.startBtn.disabled = true;
       alert('Please choose a date in the future');
     }
-    console.log(selectedDates[0].getTime());
+    //  console.log(selectedDates[0].getTime());
   },
 };
 
