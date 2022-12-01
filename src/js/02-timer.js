@@ -1,3 +1,4 @@
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -9,7 +10,10 @@ const refs = {
   valueSeconds: document.querySelector('.value[data-seconds]'),
 };
 
-let selectDate = null;
+startBtnToglle();
+
+let intervalID = null;
+let deltaTime = null;
 
 const options = {
   enableTime: true,
@@ -17,26 +21,42 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    refs.startBtn.disabled = false;
-    if (selectedDates[0] <= options.defaultDate) {
-      refs.startBtn.disabled = true;
-      alert('Please choose a date in the future');
+    if (selectedDates[0] < options.defaultDate) {
+      Notify.failure('Please choose a date in the future');
       return;
     }
-    selectDate = selectedDates[0].getTime();
+
+    startBtnToglle();
   },
 };
 
 const fp = flatpickr('input#datetime-picker', options);
-// let selectDate = fp.selectedDates[0];
+
+const timer = {
+  start() {
+    const selectDate = fp.selectedDates[0].getTime();
+
+    intervalID = setInterval(() => {
+      const currentTime = Date.now();
+      deltaTime = selectDate - currentTime;
+      const timeComponents = convertMs(deltaTime);
+      console.log(deltaTime);
+
+      console.log(timeComponents);
+      if (deltaTime <= 1000) {
+        clearInterval(intervalID);
+
+        Notify.info('Happy End!!!');
+      }
+      render(timeComponents);
+    }, 1000);
+  },
+};
 
 refs.startBtn.addEventListener('click', () => {
-  setInterval(() => {
-    const now = selectDate - Date.now();
-    const update = convertMs(now);
-    console.log(update);
-    render(update);
-  }, 1000);
+  timer.start();
+  startBtnToglle();
+  Notify.success('Timer GO!');
 });
 
 function render({ days, hours, minutes, seconds }) {
@@ -44,6 +64,10 @@ function render({ days, hours, minutes, seconds }) {
   refs.valueHours.textContent = hours;
   refs.valueMinutes.textContent = minutes;
   refs.valueSeconds.textContent = seconds;
+}
+
+function addLeadingZero(value, num) {
+  return String(value).padStart(num, '0');
 }
 
 function convertMs(ms) {
@@ -54,17 +78,32 @@ function convertMs(ms) {
   const day = hour * 24;
 
   // Remaining days
-  const days = Math.floor(ms / day);
+  const daysNum = Math.floor(ms / day);
+  let days = '';
+
+  if (daysNum >= 0 && daysNum < 100) {
+    days = addLeadingZero(daysNum, 2);
+  } else {
+    days = addLeadingZero(daysNum, 3);
+  }
   // Remaining hours
-  const hours = Math.floor((ms % day) / hour);
+  const hours = addLeadingZero(Math.floor((ms % day) / hour), 2);
   // Remaining minutes
-  const minutes = Math.floor(((ms % day) % hour) / minute);
+  const minutes = addLeadingZero(Math.floor(((ms % day) % hour) / minute), 2);
   // Remaining seconds
-  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+  const seconds = addLeadingZero(
+    Math.floor((((ms % day) % hour) % minute) / second),
+    2
+  );
 
   return { days, hours, minutes, seconds };
 }
 
-console.log(convertMs(14000)); // {days: 0, hours: 0, minutes: 0, seconds: 2}
-// console.log(convertMs(140000)); // {days: 0, hours: 0, minutes: 2, seconds: 20}
-// console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20}
+function startBtnToglle() {
+  const isDisabledBtn = refs.startBtn.hasAttribute('disabled');
+  if (isDisabledBtn) {
+    refs.startBtn.removeAttribute('disabled');
+  } else {
+    refs.startBtn.setAttribute('disabled', true);
+  }
+}
