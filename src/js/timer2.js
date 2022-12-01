@@ -58,6 +58,10 @@ function render({ days, hours, minutes, seconds }) {
   refs.valueSeconds.textContent = seconds;
 }
 
+function addLeadingZero(value, num) {
+  return String(value).padStart(num, '0');
+}
+
 function convertMs(ms) {
   // Number of milliseconds per unit of time
   const second = 1000;
@@ -66,13 +70,21 @@ function convertMs(ms) {
   const day = hour * 24;
 
   // Remaining days
-  const days = Math.floor(ms / day);
+  let days = Math.floor(ms / day);
+  if (days > 0 && days < 100) {
+    days = addLeadingZero(Math.floor(ms / day), 2);
+  } else {
+    days = addLeadingZero(Math.floor(ms / day), 3);
+  }
   // Remaining hours
-  const hours = Math.floor((ms % day) / hour);
+  const hours = addLeadingZero(Math.floor((ms % day) / hour), 2);
   // Remaining minutes
-  const minutes = Math.floor(((ms % day) % hour) / minute);
+  const minutes = addLeadingZero(Math.floor(((ms % day) % hour) / minute), 2);
   // Remaining seconds
-  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+  const seconds = addLeadingZero(
+    Math.floor((((ms % day) % hour) % minute) / second),
+    2
+  );
 
   return { days, hours, minutes, seconds };
 }
