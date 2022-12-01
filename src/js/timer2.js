@@ -13,6 +13,7 @@ const refs = {
 startBtnToglle();
 
 let intervalID = null;
+let deltaTime = null;
 
 const options = {
   enableTime: true,
@@ -37,11 +38,16 @@ const timer = {
 
     intervalID = setInterval(() => {
       const currentTime = Date.now();
-      const deltaTime = selectDate - currentTime;
+      deltaTime = selectDate - currentTime;
       const timeComponents = convertMs(deltaTime);
 
       render(timeComponents);
       console.log(timeComponents);
+      if (deltaTime <= 0) {
+        clearInterval(intervalID);
+
+        Notify.info('Happy End!!!');
+      }
     }, 1000);
   },
 };
@@ -49,6 +55,7 @@ const timer = {
 refs.startBtn.addEventListener('click', () => {
   timer.start();
   startBtnToglle();
+  Notify.success('Timer GO!');
 });
 
 function render({ days, hours, minutes, seconds }) {
@@ -70,11 +77,12 @@ function convertMs(ms) {
   const day = hour * 24;
 
   // Remaining days
-  let days = Math.floor(ms / day);
-  if (days > 0 && days < 100) {
-    days = addLeadingZero(Math.floor(ms / day), 2);
+  const daysNum = Math.floor(ms / day);
+  let days = '';
+  if (daysNum >= 0 && daysNum < 100) {
+    days = addLeadingZero(daysNum, 2);
   } else {
-    days = addLeadingZero(Math.floor(ms / day), 3);
+    days = addLeadingZero(daysNum, 3);
   }
   // Remaining hours
   const hours = addLeadingZero(Math.floor((ms % day) / hour), 2);
