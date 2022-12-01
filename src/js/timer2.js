@@ -40,14 +40,15 @@ const timer = {
       const currentTime = Date.now();
       deltaTime = selectDate - currentTime;
       const timeComponents = convertMs(deltaTime);
+      console.log(deltaTime);
 
-      render(timeComponents);
       console.log(timeComponents);
-      if (deltaTime <= 0) {
+      if (deltaTime <= 1000) {
         clearInterval(intervalID);
 
         Notify.info('Happy End!!!');
       }
+      render(timeComponents);
     }, 1000);
   },
 };
