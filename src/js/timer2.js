@@ -1,3 +1,4 @@
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -9,7 +10,9 @@ const refs = {
   valueSeconds: document.querySelector('.value[data-seconds]'),
 };
 
-let selectDate = null;
+startBtnToglle();
+
+let intervalID = null;
 
 const options = {
   enableTime: true,
@@ -17,26 +20,35 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    refs.startBtn.disabled = false;
-    if (selectedDates[0] <= options.defaultDate) {
-      refs.startBtn.disabled = true;
-      alert('Please choose a date in the future');
+    if (selectedDates[0] < options.defaultDate) {
+      Notify.failure('Please choose a date in the future');
       return;
     }
-    selectDate = selectedDates[0].getTime();
+
+    startBtnToglle();
   },
 };
 
 const fp = flatpickr('input#datetime-picker', options);
-// let selectDate = fp.selectedDates[0];
+
+const timer = {
+  start() {
+    const selectDate = fp.selectedDates[0].getTime();
+
+    intervalID = setInterval(() => {
+      const currentTime = Date.now();
+      const deltaTime = selectDate - currentTime;
+      const timeComponents = convertMs(deltaTime);
+
+      render(timeComponents);
+      console.log(timeComponents);
+    }, 1000);
+  },
+};
 
 refs.startBtn.addEventListener('click', () => {
-  setInterval(() => {
-    const now = selectDate - Date.now();
-    const update = convertMs(now);
-    console.log(update);
-    render(update);
-  }, 1000);
+  timer.start();
+  startBtnToglle();
 });
 
 function render({ days, hours, minutes, seconds }) {
@@ -65,6 +77,11 @@ function convertMs(ms) {
   return { days, hours, minutes, seconds };
 }
 
-console.log(convertMs(14000)); // {days: 0, hours: 0, minutes: 0, seconds: 2}
-// console.log(convertMs(140000)); // {days: 0, hours: 0, minutes: 2, seconds: 20}
-// console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20}
+function startBtnToglle() {
+  const isDisabledBtn = refs.startBtn.hasAttribute('disabled');
+  if (isDisabledBtn) {
+    refs.startBtn.removeAttribute('disabled');
+  } else {
+    refs.startBtn.setAttribute('disabled', true);
+  }
+}
